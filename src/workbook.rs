@@ -293,7 +293,7 @@ impl ExcelWorkbook {
         Ok(())
     }
 
-    #[pyo3(signature = (row, column, value, override_value=None, format_option=None))]
+    #[pyo3(signature = (row, column, value, override_true=None, override_false=None, format_option=None))]
     /// Worksheet handler for writing boolean values. By default, values
     /// are written as `True` or `False`. To specify an override string value
     /// to replace the boolean values, use the `override_value` field.
@@ -302,7 +302,8 @@ impl ExcelWorkbook {
     /// - `row`: The row index of the cell
     /// - `column`: The column index of the cell
     /// - `value`: The boolean value to write
-    /// - `override_value`: The string value to override inplace of `True` or `False` _(optional)_
+    /// - `override_true`: The string value to override `True` value _(optional)_
+    /// - `override_false`: The string value to override `False` value _(optional)_
     /// - `format_option`: The format of the cell _(optional)_
     ///
     /// ## Examples
@@ -314,12 +315,12 @@ impl ExcelWorkbook {
     ///     workbook = ExcelWorkbook()
     ///     workbook.add_worksheet()
     ///     
-    ///     // This will be written to cell as True
+    ///     // This will be written to cell as "TRUE"
     ///     workbook.write_boolean(0, 0, True)
-    ///     // This will be written to cell as False
+    ///     // This will be written to cell as "FALSE"
     ///     workbook.write_boolean(0, 1, False)
-    ///     // This will be written to cell as override value
-    ///     workbook.write_boolean(0, 2, False, "No")
+    ///     // This will be written to cell as "No"
+    ///     workbook.write_boolean(0, 2, False, "Yes", "No")
     ///
     ///     workbook.save("example.xlsx")
     /// ```
@@ -328,13 +329,15 @@ impl ExcelWorkbook {
         row: u32,
         column: u16,
         value: bool,
-        override_value: Option<&str>,
+        override_true: Option<&str>,
+        override_false: Option<&str>,
         format_option: Option<ExcelFormat>,
     ) -> PyResult<()> {
         let worksheet = self
             .workbook
             .worksheet_from_index(self.active_worksheet_index)
             .unwrap();
+        let override_value = if value { override_true } else { override_false };
         if format_option.is_none() {
             match override_value {
                 Some(override_value) => {

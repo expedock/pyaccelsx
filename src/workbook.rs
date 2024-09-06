@@ -25,7 +25,10 @@ impl ExcelWorkbook {
         if name.is_none() {
             self.workbook.add_worksheet();
         } else {
-            self.workbook.add_worksheet().set_name(name.unwrap()).unwrap();
+            self.workbook
+                .add_worksheet()
+                .set_name(name.unwrap())
+                .unwrap();
         }
         self.active_worksheet_index = self.workbook.worksheets().len() - 1;
     }
@@ -39,7 +42,8 @@ impl ExcelWorkbook {
     pub fn write_blank(&mut self, row: u32, column: u16, format_option: Option<ExcelFormat>) {
         let worksheet = self
             .workbook
-            .worksheet_from_index(self.active_worksheet_index).unwrap();
+            .worksheet_from_index(self.active_worksheet_index)
+            .unwrap();
         if format_option.is_none() {
             worksheet.write(row, column, "").unwrap();
         } else {
@@ -60,7 +64,8 @@ impl ExcelWorkbook {
     ) {
         let worksheet = self
             .workbook
-            .worksheet_from_index(self.active_worksheet_index).unwrap();
+            .worksheet_from_index(self.active_worksheet_index)
+            .unwrap();
         if format_option.is_none() {
             worksheet.write(row, column, value).unwrap();
         } else {
@@ -81,11 +86,10 @@ impl ExcelWorkbook {
     ) {
         let worksheet = self
             .workbook
-            .worksheet_from_index(self.active_worksheet_index).unwrap();
+            .worksheet_from_index(self.active_worksheet_index)
+            .unwrap();
         if format_option.is_none() {
-            worksheet
-                .write_number(row, column, value)
-                .unwrap();
+            worksheet.write_number(row, column, value).unwrap();
         } else {
             let format = format::create_format(format_option.unwrap());
             worksheet
@@ -105,7 +109,8 @@ impl ExcelWorkbook {
     ) {
         let worksheet = self
             .workbook
-            .worksheet_from_index(self.active_worksheet_index).unwrap();
+            .worksheet_from_index(self.active_worksheet_index)
+            .unwrap();
         if format_option.is_none() {
             worksheet
                 .merge_range(
@@ -137,7 +142,8 @@ impl ExcelWorkbook {
     ) {
         let worksheet = self
             .workbook
-            .worksheet_from_index(self.active_worksheet_index).unwrap();
+            .worksheet_from_index(self.active_worksheet_index)
+            .unwrap();
         if format_option.is_none() {
             worksheet
                 .merge_range(
@@ -169,7 +175,8 @@ impl ExcelWorkbook {
     ) {
         let worksheet = self
             .workbook
-            .worksheet_from_index(self.active_worksheet_index).unwrap();
+            .worksheet_from_index(self.active_worksheet_index)
+            .unwrap();
         if format_option.is_none() {
             worksheet
                 .merge_range(
@@ -198,14 +205,16 @@ impl ExcelWorkbook {
     pub fn set_column_width(&mut self, column: u16, width: u16) {
         let worksheet = self
             .workbook
-            .worksheet_from_index(self.active_worksheet_index).unwrap();
+            .worksheet_from_index(self.active_worksheet_index)
+            .unwrap();
         worksheet.set_column_width(column, width).unwrap();
     }
 
     pub fn freeze_panes(&mut self, row: u32, column: u16) {
         let worksheet = self
             .workbook
-            .worksheet_from_index(self.active_worksheet_index).unwrap();
+            .worksheet_from_index(self.active_worksheet_index)
+            .unwrap();
         worksheet.set_freeze_panes(row, column).unwrap();
     }
 }

@@ -82,10 +82,16 @@ impl ExcelWorkbook {
         let worksheet = self
             .workbook
             .worksheet_from_index(self.active_worksheet_index).unwrap();
-        let format = format::create_format(format_option.unwrap());
-        worksheet
-            .write_number_with_format(row, column, value, &format)
-            .unwrap();
+        if format_option.is_none() {
+            worksheet
+                .write_number(row, column, value)
+                .unwrap();
+        } else {
+            let format = format::create_format(format_option.unwrap());
+            worksheet
+                .write_number_with_format(row, column, value, &format)
+                .unwrap();
+        }
     }
 
     #[pyo3(signature = (start_row, start_column, end_row, end_column, format_option=None))]

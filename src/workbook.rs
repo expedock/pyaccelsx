@@ -19,7 +19,7 @@ impl ExcelWorkbook {
         }
     }
 
-    /// Add a new worksheet to the workbook.
+    /// Add a new worksheet to the workbook and update the active worksheet index.
     #[pyo3(signature = (name=None))]
     pub fn add_worksheet(&mut self, name: Option<&str>) {
         if name.is_none() {
@@ -45,12 +45,10 @@ impl ExcelWorkbook {
             .worksheet_from_index(self.active_worksheet_index)
             .unwrap();
         if format_option.is_none() {
-            worksheet.write(row, column, "").unwrap();
+            worksheet.write_string(row, column, "").unwrap();
         } else {
             let format = format::create_format(format_option.unwrap());
-            worksheet
-                .write_with_format(row, column, "", &format)
-                .unwrap();
+            worksheet.write_blank(row, column, &format).unwrap();
         }
     }
 
@@ -67,11 +65,11 @@ impl ExcelWorkbook {
             .worksheet_from_index(self.active_worksheet_index)
             .unwrap();
         if format_option.is_none() {
-            worksheet.write(row, column, value).unwrap();
+            worksheet.write_string(row, column, value).unwrap();
         } else {
             let format = format::create_format(format_option.unwrap());
             worksheet
-                .write_with_format(row, column, value, &format)
+                .write_string_with_format(row, column, value, &format)
                 .unwrap();
         }
     }

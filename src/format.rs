@@ -2,7 +2,29 @@
 use pyo3::prelude::*;
 use rust_xlsxwriter::{Format, FormatAlign, FormatBorder, FormatUnderline};
 
-/// Format options passed from Python
+/// The `ExcelFormat` contains the format options passed from Python
+/// to Rust, and used to create a custom `Format` object depending on
+/// the configured format options.
+///
+/// ## Examples
+/// The following example demonstrates creating a `rust_xlsxwriter::Format` object.
+/// ```
+/// from pyaccelsx import ExcelWorkbook, ExcelFormat
+///
+/// def main():
+///     workbook = ExcelWorkbook()
+///     workbook.add_worksheet()
+///
+///     format_option = ExcelFormat(
+///         align="center",
+///         bg_color="FFFF00",
+///         bold=True,
+///     )
+///
+///     workbook.write_string(0, 0, "Hello World!", format_option)
+///
+///     workbook.save("example.xlsx")
+/// ```
 #[pyclass(get_all, set_all)]
 #[derive(FromPyObject)]
 pub struct ExcelFormat {
@@ -64,6 +86,14 @@ impl ExcelFormat {
     }
 }
 
+/// Creates a `rust_xlsxwriter::Format` object from the `ExcelFormat`
+/// options passed from Python.
+///
+/// ## Parameters
+/// - `format_option`: The format options passed from Python
+///
+/// ## Returns
+/// - A `rust_xlsxwriter::Format` object
 pub fn create_format(format_option: ExcelFormat) -> Format {
     let mut format = Format::new();
 

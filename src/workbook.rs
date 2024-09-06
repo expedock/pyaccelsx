@@ -2,12 +2,10 @@ use super::format::{self, ExcelFormat};
 use pyo3::prelude::*;
 use rust_xlsxwriter::{Format, Workbook};
 
-const DEFAULT_SHEETNAME: &str = "Sheet1";
-
 #[pyclass]
 pub struct ExcelWorkbook {
     workbook: Workbook,
-    active_worksheet_name: String,
+    active_worksheet_index: usize,
 }
 
 #[pymethods]
@@ -15,17 +13,21 @@ impl ExcelWorkbook {
     #[new]
     pub fn new() -> ExcelWorkbook {
         let workbook = Workbook::new();
-        let active_worksheet_name = DEFAULT_SHEETNAME.to_string();
         ExcelWorkbook {
             workbook,
-            active_worksheet_name,
+            active_worksheet_index: 0,
         }
     }
 
     /// Add a new worksheet to the workbook.
-    pub fn add_worksheet(&mut self, name: &str) {
-        self.workbook.add_worksheet().set_name(name).unwrap();
-        self.active_worksheet_name = name.to_string();
+    #[pyo3(signature = (name=None))]
+    pub fn add_worksheet(&mut self, name: Option<&str>) {
+        if name.is_none() {
+            self.workbook.add_worksheet();
+        } else {
+            self.workbook.add_worksheet().set_name(name.unwrap()).unwrap();
+        }
+        self.active_worksheet_index = self.workbook.worksheets().len() - 1;
     }
 
     /// Save the workbook into the specified path.
@@ -37,8 +39,7 @@ impl ExcelWorkbook {
     pub fn write_blank(&mut self, row: u32, column: u16, format_option: Option<ExcelFormat>) {
         let worksheet = self
             .workbook
-            .worksheet_from_name(&self.active_worksheet_name)
-            .unwrap();
+            .worksheet_from_index(self.active_worksheet_index).unwrap();
         if format_option.is_none() {
             worksheet.write(row, column, "").unwrap();
         } else {
@@ -59,8 +60,7 @@ impl ExcelWorkbook {
     ) {
         let worksheet = self
             .workbook
-            .worksheet_from_name(&self.active_worksheet_name)
-            .unwrap();
+            .worksheet_from_index(self.active_worksheet_index).unwrap();
         if format_option.is_none() {
             worksheet.write(row, column, value).unwrap();
         } else {
@@ -81,8 +81,7 @@ impl ExcelWorkbook {
     ) {
         let worksheet = self
             .workbook
-            .worksheet_from_name(&self.active_worksheet_name)
-            .unwrap();
+            .worksheet_from_index(self.active_worksheet_index).unwrap();
         let format = format::create_format(format_option.unwrap());
         worksheet
             .write_number_with_format(row, column, value, &format)
@@ -100,8 +99,7 @@ impl ExcelWorkbook {
     ) {
         let worksheet = self
             .workbook
-            .worksheet_from_name(&self.active_worksheet_name)
-            .unwrap();
+            .worksheet_from_index(self.active_worksheet_index).unwrap();
         if format_option.is_none() {
             worksheet
                 .merge_range(
@@ -133,8 +131,7 @@ impl ExcelWorkbook {
     ) {
         let worksheet = self
             .workbook
-            .worksheet_from_name(&self.active_worksheet_name)
-            .unwrap();
+            .worksheet_from_index(self.active_worksheet_index).unwrap();
         if format_option.is_none() {
             worksheet
                 .merge_range(
@@ -166,8 +163,7 @@ impl ExcelWorkbook {
     ) {
         let worksheet = self
             .workbook
-            .worksheet_from_name(&self.active_worksheet_name)
-            .unwrap();
+            .worksheet_from_index(self.active_worksheet_index).unwrap();
         if format_option.is_none() {
             worksheet
                 .merge_range(
@@ -196,16 +192,14 @@ impl ExcelWorkbook {
     pub fn set_column_width(&mut self, column: u16, width: u16) {
         let worksheet = self
             .workbook
-            .worksheet_from_name(&self.active_worksheet_name)
-            .unwrap();
+            .worksheet_from_index(self.active_worksheet_index).unwrap();
         worksheet.set_column_width(column, width).unwrap();
     }
 
     pub fn freeze_panes(&mut self, row: u32, column: u16) {
         let worksheet = self
             .workbook
-            .worksheet_from_name(&self.active_worksheet_name)
-            .unwrap();
+            .worksheet_from_index(self.active_worksheet_index).unwrap();
         worksheet.set_freeze_panes(row, column).unwrap();
     }
 }

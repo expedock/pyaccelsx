@@ -40,15 +40,45 @@ impl ExcelWorkbook {
 
     #[pyo3(signature = (row, column, format_option=None))]
     pub fn write_blank(&mut self, row: u32, column: u16, format_option: Option<ExcelFormat>) {
+        // Only write a "blank" cell if there is a format option.
+        // If there is no format option, the corresponding cell will be an "empty" cell.
+        if let Some(format_option) = format_option {
+            let worksheet = self
+                .workbook
+                .worksheet_from_index(self.active_worksheet_index)
+                .unwrap();
+            let format = format::create_format(format_option);
+            worksheet.write_blank(row, column, &format).unwrap();
+        }
+    }
+
+    #[pyo3(signature = (row, column, override_value=None, format_option=None))]
+    pub fn write_null(
+        &mut self,
+        row: u32,
+        column: u16,
+        override_value: Option<&str>,
+        format_option: Option<ExcelFormat>,
+    ) {
         let worksheet = self
             .workbook
             .worksheet_from_index(self.active_worksheet_index)
             .unwrap();
         if format_option.is_none() {
-            worksheet.write_string(row, column, "").unwrap();
+            match override_value {
+                Some(override_value) => {
+                    worksheet.write_string(row, column, override_value).unwrap()
+                }
+                None => worksheet.write_string(row, column, "").unwrap(),
+            };
         } else {
             let format = format::create_format(format_option.unwrap());
-            worksheet.write_blank(row, column, &format).unwrap();
+            match override_value {
+                Some(override_value) => worksheet
+                    .write_string_with_format(row, column, override_value, &format)
+                    .unwrap(),
+                None => worksheet.write_blank(row, column, &format).unwrap(),
+            };
         }
     }
 
@@ -93,6 +123,39 @@ impl ExcelWorkbook {
             worksheet
                 .write_number_with_format(row, column, value, &format)
                 .unwrap();
+        }
+    }
+
+    #[pyo3(signature = (row, column, value, override_value=None, format_option=None))]
+    pub fn write_boolean(
+        &mut self,
+        row: u32,
+        column: u16,
+        value: bool,
+        override_value: Option<&str>,
+        format_option: Option<ExcelFormat>,
+    ) {
+        let worksheet = self
+            .workbook
+            .worksheet_from_index(self.active_worksheet_index)
+            .unwrap();
+        if format_option.is_none() {
+            match override_value {
+                Some(override_value) => {
+                    worksheet.write_string(row, column, override_value).unwrap()
+                }
+                None => worksheet.write_boolean(row, column, value).unwrap(),
+            };
+        } else {
+            let format = format::create_format(format_option.unwrap());
+            match override_value {
+                Some(override_value) => worksheet
+                    .write_string_with_format(row, column, override_value, &format)
+                    .unwrap(),
+                None => worksheet
+                    .write_boolean_with_format(row, column, value, &format)
+                    .unwrap(),
+            };
         }
     }
 

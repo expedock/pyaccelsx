@@ -7,6 +7,7 @@ use rust_xlsxwriter::{Format, FormatAlign, FormatBorder, FormatUnderline};
 #[derive(FromPyObject)]
 pub struct ExcelFormat {
     align: Option<String>,
+    bg_color: Option<String>,
     bold: Option<bool>,
     border: Option<bool>,
     border_top: Option<bool>,
@@ -23,6 +24,7 @@ impl ExcelFormat {
     #[new]
     #[pyo3(signature = (
         align=None,
+        bg_color=None,
         bold=None,
         border=None,
         border_top=None,
@@ -35,6 +37,7 @@ impl ExcelFormat {
     ))]
     pub fn new(
         align: Option<String>,
+        bg_color: Option<String>,
         bold: Option<bool>,
         border: Option<bool>,
         border_top: Option<bool>,
@@ -47,6 +50,7 @@ impl ExcelFormat {
     ) -> ExcelFormat {
         ExcelFormat {
             align,
+            bg_color,
             bold,
             border,
             border_top,
@@ -81,28 +85,32 @@ pub fn create_format(format_option: ExcelFormat) -> Format {
         })
     }
 
+    if let Some(bg_color) = format_option.bg_color {
+        format = format.set_background_color(bg_color.as_str());
+    }
+
     if format_option.bold.unwrap_or(false) {
         format = format.set_bold();
     }
 
     if format_option.border.unwrap_or(false) {
         format = format.set_border(FormatBorder::Thin);
-    }
+    } else {
+        if format_option.border_top.unwrap_or(false) {
+            format = format.set_border_top(FormatBorder::Thin);
+        }
 
-    if format_option.border_top.unwrap_or(false) {
-        format = format.set_border_top(FormatBorder::Thin);
-    }
+        if format_option.border_bottom.unwrap_or(false) {
+            format = format.set_border_bottom(FormatBorder::Thin);
+        }
 
-    if format_option.border_bottom.unwrap_or(false) {
-        format = format.set_border_bottom(FormatBorder::Thin);
-    }
+        if format_option.border_left.unwrap_or(false) {
+            format = format.set_border_left(FormatBorder::Thin);
+        }
 
-    if format_option.border_left.unwrap_or(false) {
-        format = format.set_border_left(FormatBorder::Thin);
-    }
-
-    if format_option.border_right.unwrap_or(false) {
-        format = format.set_border_right(FormatBorder::Thin);
+        if format_option.border_right.unwrap_or(false) {
+            format = format.set_border_right(FormatBorder::Thin);
+        }
     }
 
     if let Some(color) = format_option.font_color {

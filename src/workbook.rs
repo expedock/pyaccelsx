@@ -65,7 +65,7 @@ impl ExcelWorkbook {
     ///     
     ///     workbook.save("example.xlsx")
     /// ```
-    pub fn add_worksheet(&mut self, name: Option<&str>) -> PyResult<()> {
+    pub fn add_worksheet(&mut self, name: Option<String>) -> PyResult<()> {
         if name.is_none() {
             self.workbook.add_worksheet();
         } else {
@@ -93,7 +93,7 @@ impl ExcelWorkbook {
     ///     workbook.add_worksheet()
     ///     workbook.save("example.xlsx")
     /// ```
-    pub fn save(&mut self, path: &str) -> PyResult<()> {
+    pub fn save(&mut self, path: String) -> PyResult<()> {
         self.workbook.save(path).unwrap();
         Ok(())
     }
@@ -149,7 +149,7 @@ impl ExcelWorkbook {
         if let Some(value) = value {
             match value {
                 ValueType::String(value) => {
-                    writer::write_string(worksheet, row, column, value.as_str(), format_option)
+                    writer::write_string(worksheet, row, column, value, format_option)
                 }
                 ValueType::Bool(value) => writer::write_boolean(
                     worksheet,

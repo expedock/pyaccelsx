@@ -3,13 +3,20 @@ use rust_xlsxwriter::{ColNum, RowNum, Worksheet};
 
 use crate::format::{self, ExcelFormat};
 
+const MAX_LENGTH: usize = 32767;
+
 pub fn write_string(
     worksheet: &mut Worksheet,
     row: RowNum,
     column: ColNum,
-    value: &str,
+    value: String,
     format_option: Option<ExcelFormat>,
 ) -> PyResult<()> {
+    let mut value = value;
+    if value.len() > MAX_LENGTH {
+        // Truncate the string
+        value.truncate(MAX_LENGTH);
+    }
     if format_option.is_none() {
         worksheet.write_string(row, column, value).unwrap();
     } else {

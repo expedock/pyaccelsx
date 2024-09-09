@@ -61,7 +61,7 @@ impl ExcelWorkbook {
     ///     workbook.add_worksheet()    // Sheet3
     ///
     ///     // This is written in Sheet3
-    ///     workbook..write_string(0, 0, "Hello")
+    ///     workbook..write(0, 0, "Hello")
     ///     
     ///     workbook.save("example.xlsx")
     /// ```
@@ -302,7 +302,7 @@ impl ExcelWorkbook {
     ///     workbook.add_worksheet()
     ///     
     ///     format_option = ExcelFormat(align="center", border=True)
-    ///     workbook.write_string_and_merge_range(0, 0, 0, 2, "Hello World!", format_option)
+    ///     workbook.write_and_merge_range(0, 0, 0, 2, "Hello World!", format_option)
     ///
     ///     workbook.save("example.xlsx")
     /// ```
@@ -368,7 +368,7 @@ impl ExcelWorkbook {
     ///     workbook = ExcelWorkbook()
     ///     workbook.add_worksheet()
     ///
-    ///     workbook.write_string(0, 0, "Hello World!")
+    ///     workbook.write(0, 0, "Hello World!")
     ///     workbook.set_column_width(0, 20)
     ///
     ///     workbook.save("example.xlsx")
@@ -397,7 +397,7 @@ impl ExcelWorkbook {
     ///     workbook = ExcelWorkbook()
     ///     workbook.add_worksheet()
     ///
-    ///     workbook.write_string(0, 0, "Hello World!")
+    ///     workbook.write(0, 0, "Hello World!")
     ///     // This freezes the first row and first column
     ///     workbook.freeze_panes(0, 0)
     ///

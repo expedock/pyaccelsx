@@ -19,6 +19,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Use `write_string` and `write_string_with_format` to write strings.
 - Use index when getting a worksheet instead of name.
 - Make rows and columns to follow the correct type from `rust_xlsxwriter`.
+- Make `write_string` automatically truncate string if it exceeds the max length allowed in Excel.
+- Updated README.
 
 ### Fixed
 

@@ -61,11 +61,11 @@ impl ExcelWorkbook {
     ///     workbook.add_worksheet()    // Sheet3
     ///
     ///     // This is written in Sheet3
-    ///     workbook..write_string(0, 0, "Hello")
+    ///     workbook..write(0, 0, "Hello")
     ///     
     ///     workbook.save("example.xlsx")
     /// ```
-    pub fn add_worksheet(&mut self, name: Option<&str>) -> PyResult<()> {
+    pub fn add_worksheet(&mut self, name: Option<String>) -> PyResult<()> {
         if name.is_none() {
             self.workbook.add_worksheet();
         } else {
@@ -93,7 +93,7 @@ impl ExcelWorkbook {
     ///     workbook.add_worksheet()
     ///     workbook.save("example.xlsx")
     /// ```
-    pub fn save(&mut self, path: &str) -> PyResult<()> {
+    pub fn save(&mut self, path: String) -> PyResult<()> {
         self.workbook.save(path).unwrap();
         Ok(())
     }
@@ -149,7 +149,7 @@ impl ExcelWorkbook {
         if let Some(value) = value {
             match value {
                 ValueType::String(value) => {
-                    writer::write_string(worksheet, row, column, value.as_str(), format_option)
+                    writer::write_string(worksheet, row, column, value, format_option)
                 }
                 ValueType::Bool(value) => writer::write_boolean(
                     worksheet,
@@ -302,7 +302,7 @@ impl ExcelWorkbook {
     ///     workbook.add_worksheet()
     ///     
     ///     format_option = ExcelFormat(align="center", border=True)
-    ///     workbook.write_string_and_merge_range(0, 0, 0, 2, "Hello World!", format_option)
+    ///     workbook.write_and_merge_range(0, 0, 0, 2, "Hello World!", format_option)
     ///
     ///     workbook.save("example.xlsx")
     /// ```
@@ -368,7 +368,7 @@ impl ExcelWorkbook {
     ///     workbook = ExcelWorkbook()
     ///     workbook.add_worksheet()
     ///
-    ///     workbook.write_string(0, 0, "Hello World!")
+    ///     workbook.write(0, 0, "Hello World!")
     ///     workbook.set_column_width(0, 20)
     ///
     ///     workbook.save("example.xlsx")
@@ -397,7 +397,7 @@ impl ExcelWorkbook {
     ///     workbook = ExcelWorkbook()
     ///     workbook.add_worksheet()
     ///
-    ///     workbook.write_string(0, 0, "Hello World!")
+    ///     workbook.write(0, 0, "Hello World!")
     ///     // This freezes the first row and first column
     ///     workbook.freeze_panes(0, 0)
     ///

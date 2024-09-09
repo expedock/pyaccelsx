@@ -182,8 +182,8 @@ pub fn write_boolean(
 /// ```
 pub fn write_null(
     worksheet: &mut Worksheet,
-    row: u32,
-    column: u16,
+    row: RowNum,
+    column: ColNum,
     override_value: Option<String>,
     format_option: Option<ExcelFormat>,
 ) -> PyResult<()> {

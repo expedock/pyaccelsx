@@ -50,13 +50,13 @@ merge_format = ExcelFormat(
 )
 
 # Write some data to the worksheet
-workbook.write_string(0, 0, "Hello", bold_format)
-workbook.write_number(0, 1, 44123.456, numeric_format)
-workbook.write_string(0, 2, "Right", right_aligned_format)
-workbook.write_string(0, 3, "Color", color_format)
-workbook.write_string_and_merge_range(1, 0, 1, 3, "Merge", merge_format)
-workbook.write_number_and_merge_range(2, 0, 2, 3, 123456, merge_format)
-workbook.write_string(3, 1, "border", border_format)
+workbook.write(0, 0, "Hello", format_option=bold_format)
+workbook.write(0, 1, 44123.456, format_option=numeric_format)
+workbook.write(0, 2, "Right", format_option=right_aligned_format)
+workbook.write(0, 3, "Color", format_option=color_format)
+workbook.write_and_merge_range(1, 0, 1, 3, "Merge", format_option=merge_format)
+workbook.write_and_merge_range(2, 0, 2, 3, 123456, format_option=merge_format)
+workbook.write(3, 1, "border", format_option=border_format)
 
 # Save the workbook
 workbook.save("example.xlsx")

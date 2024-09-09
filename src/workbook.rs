@@ -391,7 +391,7 @@ impl ExcelWorkbook {
     ///
     ///     workbook.save("example.xlsx")
     /// ```
-    pub fn set_column_width(&mut self, column: u16, width: u16) -> PyResult<()> {
+    pub fn set_column_width(&mut self, column: ColNum, width: f64) -> PyResult<()> {
         let worksheet = self
             .workbook
             .worksheet_from_index(self.active_worksheet_index)
@@ -421,7 +421,7 @@ impl ExcelWorkbook {
     ///
     ///     workbook.save("example.xlsx")
     /// ```
-    pub fn freeze_panes(&mut self, row: u32, column: u16) -> PyResult<()> {
+    pub fn freeze_panes(&mut self, row: RowNum, column: ColNum) -> PyResult<()> {
         let worksheet = self
             .workbook
             .worksheet_from_index(self.active_worksheet_index)

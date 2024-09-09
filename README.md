@@ -11,8 +11,8 @@ workbook = ExcelWorkbook()
 workbook.add_worksheet("Sheet 1")
 
 # Write some data to the worksheet
-workbook.write_string(0, 0, "Hello")
-workbook.write_string(0, 1, "World!")
+workbook.write(0, 0, "Hello")
+workbook.write(0, 1, "World!")
 
 # Save the workbook
 workbook.save("example.xlsx")

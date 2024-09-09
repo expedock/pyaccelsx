@@ -124,9 +124,9 @@ impl ExcelWorkbook {
     ///     // Write a boolean
     ///     workbook.write(1, 0, True, "Yes", "No")
     ///     // Write an integer
-    ///     workbook.write(2, 0, 42, format_option=ExcelFormat(number_format="#,##0"))
+    ///     workbook.write(2, 0, 42, format_option=ExcelFormat(num_format="#,##0"))
     ///     // Write a float
-    ///     workbook.write(3, 0, 3.14, format_option=ExcelFormat(number_format="#,##0.00"))
+    ///     workbook.write(3, 0, 3.14, format_option=ExcelFormat(num_format="#,##0.00"))
     ///     // Write None
     ///     workbook.write(4, 0, None, override_value="Empty")
     ///     
@@ -223,8 +223,7 @@ impl ExcelWorkbook {
 
     #[pyo3(signature = (start_row, start_column, end_row, end_column, format_option=None))]
     /// Worksheet handler for merging a range of cells. This will not do any
-    /// writing to the cell values. To write values, use either
-    /// `write_string_and_merge_range` or `write_number_and_merge_range`.
+    /// writing to the cell values. To write values, use `write_and_merge_range`.
     ///
     /// ## Parameters
     /// - `start_row`: The start row index of the range

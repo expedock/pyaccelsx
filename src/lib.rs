@@ -1,5 +1,7 @@
 pub mod format;
+pub mod util;
 pub mod workbook;
+pub mod writer;
 
 use format::ExcelFormat;
 use pyo3::prelude::*;

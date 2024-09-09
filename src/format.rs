@@ -26,7 +26,7 @@ use rust_xlsxwriter::{Format, FormatAlign, FormatBorder, FormatUnderline};
 ///     workbook.save("example.xlsx")
 /// ```
 #[pyclass(get_all, set_all)]
-#[derive(FromPyObject)]
+#[derive(Clone)]
 pub struct ExcelFormat {
     align: Option<String>,
     bg_color: Option<String>,

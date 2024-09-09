@@ -1,6 +1,9 @@
 use super::format::{self, ExcelFormat};
 use pyo3::prelude::*;
-use rust_xlsxwriter::{Format, Workbook};
+use rust_xlsxwriter::{ColNum, Format, RowNum, Workbook};
+
+use crate::util::ValueType;
+use crate::writer;
 
 #[pyclass]
 /// The `ExcelWorkbook` struct represents an Excel workbook.
@@ -95,6 +98,83 @@ impl ExcelWorkbook {
         Ok(())
     }
 
+    #[pyo3(signature = (row, column, value=None, override_true_value=None, override_false_value=None, override_value=None, format_option=None))]
+    /// Worksheet handler for writing a value to a cell.
+    ///
+    /// ## Parameters
+    /// - `row`: The row number of the cell
+    /// - `column`: The column number of the cell
+    /// - `value`: The value to write
+    /// - `override_true_value`: The value to write if the value is `True`
+    /// - `override_false_value`: The value to write if the value is `False`
+    /// - `override_value`: The value to write if the value is `None`
+    /// - `format_option`: The format to apply to the cell
+    ///
+    /// ## Examples
+    /// The following example demonstrates writing a value to a cell in a workbook.
+    /// ```
+    /// from pyaccelsx import ExcelWorkbook, ExcelFormat
+    ///
+    /// def main():
+    ///     workbook = ExcelWorkbook()
+    ///     workbook.add_worksheet()
+    ///     
+    ///     // Write a string
+    ///     workbook.write(0, 0, "Hello")
+    ///     // Write a boolean
+    ///     workbook.write(1, 0, True, "Yes", "No")
+    ///     // Write an integer
+    ///     workbook.write(2, 0, 42, format_option=ExcelFormat(number_format="#,##0"))
+    ///     // Write a float
+    ///     workbook.write(3, 0, 3.14, format_option=ExcelFormat(number_format="#,##0.00"))
+    ///     // Write None
+    ///     workbook.write(4, 0, None, override_value="Empty")
+    ///     
+    ///     workbook.save("example.xlsx")
+    pub fn write(
+        &mut self,
+        row: RowNum,
+        column: ColNum,
+        value: Option<ValueType>,
+        override_true_value: Option<String>,
+        override_false_value: Option<String>,
+        override_value: Option<String>,
+        format_option: Option<ExcelFormat>,
+    ) -> PyResult<()> {
+        let worksheet = self
+            .workbook
+            .worksheet_from_index(self.active_worksheet_index)
+            .unwrap();
+
+        if let Some(value) = value {
+            match value {
+                ValueType::String(value) => {
+                    writer::write_string(worksheet, row, column, value.as_str(), format_option)
+                }
+                ValueType::Bool(value) => writer::write_boolean(
+                    worksheet,
+                    row,
+                    column,
+                    value,
+                    override_true_value,
+                    override_false_value,
+                    format_option,
+                ),
+                ValueType::Int(value) => {
+                    writer::write_number(worksheet, row, column, value, format_option)
+                }
+                ValueType::Float(value) => {
+                    writer::write_number(worksheet, row, column, value, format_option)
+                }
+            }
+            .unwrap();
+        } else {
+            writer::write_null(worksheet, row, column, override_value, format_option).unwrap();
+        }
+
+        Ok(())
+    }
+
     #[pyo3(signature = (row, column, format_option=None))]
     /// Worksheet handler for writing a "blank" cell.
     /// This function will only perform write if `format_option` is specified.
@@ -126,8 +206,8 @@ impl ExcelWorkbook {
     ///
     pub fn write_blank(
         &mut self,
-        row: u32,
-        column: u16,
+        row: RowNum,
+        column: ColNum,
         format_option: Option<ExcelFormat>,
     ) -> PyResult<()> {
         if let Some(format_option) = format_option {
@@ -137,224 +217,6 @@ impl ExcelWorkbook {
                 .unwrap();
             let format = format::create_format(format_option);
             worksheet.write_blank(row, column, &format).unwrap();
-        }
-        Ok(())
-    }
-
-    #[pyo3(signature = (row, column, override_value=None, format_option=None))]
-    /// Worksheet handler for writing `None` values.
-    ///
-    /// ## Parameters
-    /// - `row`: The row index of the cell
-    /// - `column`: The column index of the cell
-    /// - `override_value`: The string value to write if cell value is None _(optional)_
-    /// - `format_option`: The format of the cell _(optional)_
-    ///
-    /// ## Examples
-    /// The following example demonstrates writing a `None` value to a worksheet.
-    /// ```
-    /// from pyaccelsx import ExcelWorkbook, ExcelFormat
-    ///
-    /// def main():
-    ///     workbook = ExcelWorkbook()
-    ///     workbook.add_worksheet()
-    ///
-    ///     // This will write "N/A" for `None` values
-    ///     workbook.write_null(0, 0, "N/A")
-    ///     // This will not perform any write    
-    ///     workbook.write_null(0, 1)
-    ///     // This will perform `write_blank`
-    ///     format_option = ExcelFormat(align="right")
-    ///     workbook.write_null(row=0, column=2, format_option=format_option)
-    ///
-    ///     workbook.save("example.xlsx")
-    /// ```
-    pub fn write_null(
-        &mut self,
-        row: u32,
-        column: u16,
-        override_value: Option<&str>,
-        format_option: Option<ExcelFormat>,
-    ) -> PyResult<()> {
-        let worksheet = self
-            .workbook
-            .worksheet_from_index(self.active_worksheet_index)
-            .unwrap();
-        if format_option.is_none() {
-            if let Some(override_value) = override_value {
-                worksheet.write_string(row, column, override_value).unwrap();
-            }
-        } else {
-            let format = format::create_format(format_option.unwrap());
-            match override_value {
-                Some(override_value) => worksheet
-                    .write_string_with_format(row, column, override_value, &format)
-                    .unwrap(),
-                None => worksheet.write_blank(row, column, &format).unwrap(),
-            };
-        }
-        Ok(())
-    }
-
-    #[pyo3(signature = (row, column, value, format_option=None))]
-    /// Worksheet handler for writing string values.
-    ///
-    /// ## Parameters
-    /// - `row`: The row index of the cell
-    /// - `column`: The column index of the cell
-    /// - `value`: The string value to write
-    /// - `format_option`: The format of the cell _(optional)_
-    ///
-    /// ## Examples
-    /// The following example demonstrates writing a string to a worksheet.
-    /// ```
-    /// from pyaccelsx import ExcelWorkbook, ExcelFormat
-    ///
-    /// def main():
-    ///     workbook = ExcelWorkbook()
-    ///     workbook.add_worksheet()
-    ///
-    ///     workbook.write_string(0, 0, "Hello")
-    ///     format_option = ExcelFormat(bold=True)
-    ///     workbook.write_string(0, 1, "World!", format_option)
-    ///
-    ///     workbook.save("example.xlsx")
-    /// ```
-    pub fn write_string(
-        &mut self,
-        row: u32,
-        column: u16,
-        value: &str,
-        format_option: Option<ExcelFormat>,
-    ) -> PyResult<()> {
-        let worksheet = self
-            .workbook
-            .worksheet_from_index(self.active_worksheet_index)
-            .unwrap();
-        if format_option.is_none() {
-            worksheet.write_string(row, column, value).unwrap();
-        } else {
-            let format = format::create_format(format_option.unwrap());
-            worksheet
-                .write_string_with_format(row, column, value, &format)
-                .unwrap();
-        }
-        Ok(())
-    }
-
-    #[pyo3(signature = (row, column, value, format_option=None))]
-    /// Worksheet handler for writing numeric values. By default, values
-    /// are passed as a float (`f64`) type. To specify whether to write intenger
-    /// or float, use the `format_option` and set the `num_format` field.
-    ///
-    /// ## Parameters
-    /// - `row`: The row index of the cell
-    /// - `column`: The column index of the cell
-    /// - `value`: The numeric value to write
-    /// - `format_option`: The format of the cell _(optional)_
-    ///
-    /// ## Examples
-    /// The following example demonstrates writing numeric values to a worksheet.
-    /// ```
-    /// from pyaccelsx import ExcelWorkbook, ExcelFormat
-    ///
-    /// def main():
-    ///     workbook = ExcelWorkbook()
-    ///     workbook.add_worksheet()
-    ///     
-    ///     // This will be written to cell as float (123445.21)
-    ///     format_option = ExcelFormat(num_format="#,##0.00")
-    ///     workbook.write_number(0, 0, 123445.21, format_option)
-    ///     // This will be written to cell as integer (123,456)
-    ///     format_option = ExcelFormat(num_format="#,##0")
-    ///     workbook.write_number(0, 1, 123456, format_option)
-    ///
-    ///     workbook.save("example.xlsx")
-    /// ```
-    pub fn write_number(
-        &mut self,
-        row: u32,
-        column: u16,
-        value: f64,
-        format_option: Option<ExcelFormat>,
-    ) -> PyResult<()> {
-        let worksheet = self
-            .workbook
-            .worksheet_from_index(self.active_worksheet_index)
-            .unwrap();
-        if format_option.is_none() {
-            worksheet.write_number(row, column, value).unwrap();
-        } else {
-            let format = format::create_format(format_option.unwrap());
-            worksheet
-                .write_number_with_format(row, column, value, &format)
-                .unwrap();
-        }
-        Ok(())
-    }
-
-    #[pyo3(signature = (row, column, value, override_true=None, override_false=None, format_option=None))]
-    /// Worksheet handler for writing boolean values. By default, values
-    /// are written as `True` or `False`. To specify an override string value
-    /// to replace the boolean values, use the `override_value` field.
-    ///
-    /// ## Parameters
-    /// - `row`: The row index of the cell
-    /// - `column`: The column index of the cell
-    /// - `value`: The boolean value to write
-    /// - `override_true`: The string value to override `True` value _(optional)_
-    /// - `override_false`: The string value to override `False` value _(optional)_
-    /// - `format_option`: The format of the cell _(optional)_
-    ///
-    /// ## Examples
-    /// The following example demonstrates writing boolean values to a worksheet.
-    /// ```
-    /// from pyaccelsx import ExcelWorkbook
-    ///
-    /// def main():
-    ///     workbook = ExcelWorkbook()
-    ///     workbook.add_worksheet()
-    ///     
-    ///     // This will be written to cell as "TRUE"
-    ///     workbook.write_boolean(0, 0, True)
-    ///     // This will be written to cell as "FALSE"
-    ///     workbook.write_boolean(0, 1, False)
-    ///     // This will be written to cell as "No"
-    ///     workbook.write_boolean(0, 2, False, "Yes", "No")
-    ///
-    ///     workbook.save("example.xlsx")
-    /// ```
-    pub fn write_boolean(
-        &mut self,
-        row: u32,
-        column: u16,
-        value: bool,
-        override_true: Option<&str>,
-        override_false: Option<&str>,
-        format_option: Option<ExcelFormat>,
-    ) -> PyResult<()> {
-        let worksheet = self
-            .workbook
-            .worksheet_from_index(self.active_worksheet_index)
-            .unwrap();
-        let override_value = if value { override_true } else { override_false };
-        if format_option.is_none() {
-            match override_value {
-                Some(override_value) => {
-                    worksheet.write_string(row, column, override_value).unwrap()
-                }
-                None => worksheet.write_boolean(row, column, value).unwrap(),
-            };
-        } else {
-            let format = format::create_format(format_option.unwrap());
-            match override_value {
-                Some(override_value) => worksheet
-                    .write_string_with_format(row, column, override_value, &format)
-                    .unwrap(),
-                None => worksheet
-                    .write_boolean_with_format(row, column, value, &format)
-                    .unwrap(),
-            };
         }
         Ok(())
     }
@@ -387,10 +249,10 @@ impl ExcelWorkbook {
     /// ```
     pub fn merge_range(
         &mut self,
-        start_row: u32,
-        start_column: u16,
-        end_row: u32,
-        end_column: u16,
+        start_row: RowNum,
+        start_column: ColNum,
+        end_row: RowNum,
+        end_column: ColNum,
         format_option: Option<ExcelFormat>,
     ) -> PyResult<()> {
         let worksheet = self
@@ -417,7 +279,7 @@ impl ExcelWorkbook {
         Ok(())
     }
 
-    #[pyo3(signature = (start_row, start_column, end_row, end_column, value, format_option=None))]
+    #[pyo3(signature = (start_row, start_column, end_row, end_column, value=None, override_true_value=None, override_false_value=None, override_value=None, format_option=None))]
     /// Worksheet handler for merging a range of cells and writing string value into the merged cells.
     ///
     /// ## Parameters
@@ -426,6 +288,9 @@ impl ExcelWorkbook {
     /// - `end_row`: The end row index of the range
     /// - `end_column`: The end column index of the range
     /// - `value`: The string value to write
+    /// - `override_true_value`: The string value to write if the cell value is `True` _(optional)_
+    /// - `override_false_value`: The string value to write if the cell value is `False` _(optional)_
+    /// - `override_value`: The string value to write if the cell value is not `True` or `False` _(optional)_
     /// - `format_option`: The format of the cell _(optional)_
     ///
     /// ## Examples
@@ -442,100 +307,65 @@ impl ExcelWorkbook {
     ///
     ///     workbook.save("example.xlsx")
     /// ```
-    pub fn write_string_and_merge_range(
+    pub fn write_and_merge_range(
         &mut self,
-        start_row: u32,
-        start_column: u16,
-        end_row: u32,
-        end_column: u16,
-        value: &str,
+        start_row: RowNum,
+        start_column: ColNum,
+        end_row: RowNum,
+        end_column: ColNum,
+        value: Option<ValueType>,
+        override_true_value: Option<String>,
+        override_false_value: Option<String>,
+        override_value: Option<String>,
         format_option: Option<ExcelFormat>,
     ) -> PyResult<()> {
-        let worksheet = self
-            .workbook
-            .worksheet_from_index(self.active_worksheet_index)
-            .unwrap();
-        if format_option.is_none() {
-            worksheet
-                .merge_range(
-                    start_row,
-                    start_column,
-                    end_row,
-                    end_column,
-                    value,
-                    &Format::new(),
-                )
+        if let Some(value) = value {
+            let worksheet = self
+                .workbook
+                .worksheet_from_index(self.active_worksheet_index)
                 .unwrap();
-        } else {
-            let format = format::create_format(format_option.unwrap());
-            worksheet
-                .merge_range(start_row, start_column, end_row, end_column, value, &format)
-                .unwrap();
-        }
-        Ok(())
-    }
 
-    #[pyo3(signature = (start_row, start_column, end_row, end_column, value, format_option=None))]
-    /// Worksheet handler for merging a range of cells and writing numeric values into the merged cells.
-    /// By default, values are passed as a float (`f64`) type. To specify whether to write intenger
-    /// or float, use the `format_option` and set the `num_format` field.
-    ///
-    /// ## Parameters
-    /// - `start_row`: The start row index of the range
-    /// - `start_column`: The start column index of the range
-    /// - `end_row`: The end row index of the range
-    /// - `end_column`: The end column index of the range
-    /// - `value`: The string value to write
-    /// - `format_option`: The format of the cell _(optional)_
-    ///
-    /// ## Examples
-    /// The following example demonstrates merging cells and writing numeric value into the merged cells in a worksheet.
-    /// ```
-    /// from pyaccelsx import ExcelWorkbook, ExcelFormat
-    ///
-    /// def main():
-    ///     workbook = ExcelWorkbook()
-    ///     workbook.add_worksheet()
-    ///     
-    ///     format_option = ExcelFormat(align="center", border=True, num_format="#,##0.00")
-    ///     workbook.write_number_and_merge_range(0, 0, 0, 2, 12.45, format_option)
-    ///
-    ///     workbook.save("example.xlsx")
-    /// ```
-    pub fn write_number_and_merge_range(
-        &mut self,
-        start_row: u32,
-        start_column: u16,
-        end_row: u32,
-        end_column: u16,
-        value: f64,
-        format_option: Option<ExcelFormat>,
-    ) -> PyResult<()> {
-        let worksheet = self
-            .workbook
-            .worksheet_from_index(self.active_worksheet_index)
-            .unwrap();
-        if format_option.is_none() {
-            worksheet
-                .merge_range(
+            if format_option.is_none() {
+                worksheet
+                    .merge_range(
+                        start_row,
+                        start_column,
+                        end_row,
+                        end_column,
+                        "",
+                        &Format::new(),
+                    )
+                    .unwrap();
+                self.write(
                     start_row,
                     start_column,
-                    end_row,
-                    end_column,
-                    "",
-                    &Format::new(),
+                    Some(value),
+                    override_true_value,
+                    override_false_value,
+                    override_value,
+                    format_option,
                 )
                 .unwrap();
-            worksheet
-                .write_number_with_format(start_row, start_column, value, &Format::new())
+            } else {
+                let cloned_format_option = format_option.clone();
+
+                let format = format::create_format(format_option.unwrap());
+                worksheet
+                    .merge_range(start_row, start_column, end_row, end_column, "", &format)
+                    .unwrap();
+                self.write(
+                    start_row,
+                    start_column,
+                    Some(value),
+                    override_true_value,
+                    override_false_value,
+                    override_value,
+                    cloned_format_option,
+                )
                 .unwrap();
+            }
         } else {
-            let format = format::create_format(format_option.unwrap());
-            worksheet
-                .merge_range(start_row, start_column, end_row, end_column, "", &format)
-                .unwrap();
-            worksheet
-                .write_number_with_format(start_row, start_column, value, &format)
+            self.merge_range(start_row, start_column, end_row, end_column, format_option)
                 .unwrap();
         }
         Ok(())

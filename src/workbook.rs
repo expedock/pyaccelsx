@@ -319,22 +319,11 @@ impl ExcelWorkbook {
         format_option: Option<ExcelFormat>,
     ) -> PyResult<()> {
         if let Some(value) = value {
-            let worksheet = self
-                .workbook
-                .worksheet_from_index(self.active_worksheet_index)
+            // Prevent using moved value
+            let cloned_format_option = format_option.clone();
+            self.merge_range(start_row, start_column, end_row, end_column, format_option)
                 .unwrap();
-
-            if format_option.is_none() {
-                worksheet
-                    .merge_range(
-                        start_row,
-                        start_column,
-                        end_row,
-                        end_column,
-                        "",
-                        &Format::new(),
-                    )
-                    .unwrap();
+            if cloned_format_option.is_none() {
                 self.write(
                     start_row,
                     start_column,
@@ -342,16 +331,10 @@ impl ExcelWorkbook {
                     override_true_value,
                     override_false_value,
                     override_value,
-                    format_option,
+                    cloned_format_option,
                 )
                 .unwrap();
             } else {
-                let cloned_format_option = format_option.clone();
-
-                let format = format::create_format(format_option.unwrap());
-                worksheet
-                    .merge_range(start_row, start_column, end_row, end_column, "", &format)
-                    .unwrap();
                 self.write(
                     start_row,
                     start_column,

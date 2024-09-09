@@ -181,7 +181,7 @@ dependencies = [
 
 [[package]]
 name = "pyaccelsx"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "pyo3",
  "rust_xlsxwriter",

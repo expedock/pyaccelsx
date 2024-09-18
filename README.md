@@ -68,9 +68,9 @@ workbook.save("example.xlsx")
 
 ## Performance
 
-We evaluate `pyaccelsx` performance on writing **4,000 rows**, **50 columns**, and **1 sheet**, and used [hyperfine](https://lib.rs/crates/hyperfine) to compare the performance with `rust_xlsxwriter` and `xlsxwriter`.
+We evaluate `pyaccelsx` performance on writing **4,000 rows**, **50 columns**, and **1 sheet**, and used [hyperfine](https://lib.rs/crates/hyperfine) to compare the performance with `rust_xlsxwriter` and `XlsxWriter`.
 
-### `xlsxwriter` and `pyaccelsx`
+### `XlsxWriter` and `pyaccelsx`
 
 ```bash
 $ hyperfine 'python3 py_xlsxwriter_test.py' 'python3 pyaccelsx_test.py' --warmup 5 --runs 20
@@ -88,7 +88,7 @@ Summary
     2.17 ± 0.11 times faster than 'python3 py_xlsxwriter_test.py'
 ```
 
-### `rust_xlsxwriter`, `xlsxwriter`, and `pyaccelsx`
+### `rust_xlsxwriter`, `XlsxWriter`, and `pyaccelsx`
 
 ```bash
 $ hyperfine './target/release/rust_test' 'python3 py_xlsxwriter_test.py' 'python3 pyaccelsx_test.py' --warmup 5 --runs 20

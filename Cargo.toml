@@ -11,3 +11,6 @@ crate-type = ["cdylib"]
 [dependencies]
 pyo3 = "0.22.3"
 rust_xlsxwriter = "0.77.0"
+
+[patch.crates-io]
+rust_xlsxwriter = { git = "https://github.com/stanleysie/rust_xlsxwriter" }

@@ -1,7 +1,7 @@
 use pyo3::prelude::*;
 use rust_xlsxwriter::{ColNum, RowNum, Worksheet};
 
-use crate::format::{self, ExcelFormat};
+use crate::format::{ExcelFormat, create_format};
 
 const MAX_LENGTH: usize = 32767;
 
@@ -20,7 +20,7 @@ pub fn write_string(
     if format_option.is_none() {
         worksheet.write_string(row, column, value).unwrap();
     } else {
-        let format = format::create_format(format_option.unwrap());
+        let format = create_format(format_option.unwrap());
         worksheet
             .write_string_with_format(row, column, value, &format)
             .unwrap();
@@ -38,7 +38,7 @@ pub fn write_number(
     if format_option.is_none() {
         worksheet.write_number(row, column, value).unwrap();
     } else {
-        let format = format::create_format(format_option.unwrap());
+        let format = create_format(format_option.unwrap());
         worksheet
             .write_number_with_format(row, column, value, &format)
             .unwrap();
@@ -66,7 +66,7 @@ pub fn write_boolean(
             None => worksheet.write_boolean(row, column, value).unwrap(),
         };
     } else {
-        let format = format::create_format(format_option.unwrap());
+        let format = create_format(format_option.unwrap());
         match override_value {
             Some(override_value) => worksheet
                 .write_string_with_format(row, column, override_value, &format)
@@ -91,7 +91,7 @@ pub fn write_null(
             worksheet.write_string(row, column, override_value).unwrap();
         }
     } else {
-        let format = format::create_format(format_option.unwrap());
+        let format = create_format(format_option.unwrap());
         match override_value {
             Some(override_value) => worksheet
                 .write_string_with_format(row, column, override_value, &format)

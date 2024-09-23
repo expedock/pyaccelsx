@@ -1,11 +1,12 @@
-pub mod format;
-pub mod util;
-pub mod workbook;
-pub mod writer;
+mod format;
+mod util;
+mod workbook;
+mod writer;
 
-use format::ExcelFormat;
+pub use crate::format::ExcelFormat;
+pub use crate::workbook::ExcelWorkbook;
+
 use pyo3::prelude::*;
-use workbook::ExcelWorkbook;
 
 /// A Python module implemented in Rust.
 #[pymodule]

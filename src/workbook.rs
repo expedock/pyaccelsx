@@ -1,7 +1,7 @@
-use super::format::{self, ExcelFormat};
 use pyo3::prelude::*;
 use rust_xlsxwriter::{ColNum, Format, RowNum, Workbook};
 
+use crate::format::{ExcelFormat, create_format};
 use crate::util::ValueType;
 use crate::writer;
 
@@ -215,7 +215,7 @@ impl ExcelWorkbook {
                 .workbook
                 .worksheet_from_index(self.active_worksheet_index)
                 .unwrap();
-            let format = format::create_format(format_option);
+            let format = create_format(format_option);
             worksheet.write_blank(row, column, &format).unwrap();
         }
         Ok(())
@@ -270,7 +270,7 @@ impl ExcelWorkbook {
                 )
                 .unwrap();
         } else {
-            let format = format::create_format(format_option.unwrap());
+            let format = create_format(format_option.unwrap());
             worksheet
                 .merge_range(start_row, start_column, end_row, end_column, "", &format)
                 .unwrap();

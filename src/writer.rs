@@ -1,7 +1,7 @@
 use pyo3::prelude::*;
 use rust_xlsxwriter::{ColNum, RowNum, Worksheet};
 
-use crate::format::{ExcelFormat, create_format};
+use crate::format::{create_format, ExcelFormat};
 
 const MAX_LENGTH: usize = 32767;
 

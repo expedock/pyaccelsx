@@ -1,7 +1,7 @@
 use pyo3::prelude::*;
 use rust_xlsxwriter::{ColNum, Format, RowNum, Workbook};
 
-use crate::format::{ExcelFormat, create_format};
+use crate::format::{create_format, ExcelFormat};
 use crate::util::ValueType;
 use crate::writer;
 

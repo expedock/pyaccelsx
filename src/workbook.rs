@@ -29,8 +29,12 @@ impl ExcelWorkbook {
     ///     workbook.add_worksheet()
     ///     workbook.save("example.xlsx")
     /// ```
-    pub fn new() -> ExcelWorkbook {
-        let workbook = Workbook::new();
+    #[pyo3(signature = (use_zip64=false))]
+    pub fn new(use_zip64: bool) -> ExcelWorkbook {
+        let mut workbook = Workbook::new();
+        if use_zip64 {
+            workbook.use_zip_large_file(true);
+        }
         ExcelWorkbook {
             workbook,
             active_worksheet_index: 0,
@@ -75,6 +79,28 @@ impl ExcelWorkbook {
                 .unwrap();
         }
         self.active_worksheet_index = self.workbook.worksheets().len() - 1;
+        Ok(())
+    }
+
+    /// Set the active worksheet index.
+    ///
+    /// ## Parameters
+    /// - `index`: The index of the worksheet
+    ///
+    /// ## Examples
+    /// The following example demonstrates setting the active worksheet.
+    /// ```
+    /// from pyaccelsx import ExcelWorkbook
+    ///
+    /// def main():
+    ///     workbook = ExcelWorkbook()
+    ///     workbook.add_worksheet("Sheet 1")
+    ///     workbook.add_worksheet("Sheet 2")
+    ///     workbook.set_active_worksheet(0)
+    ///     workbook.save("example.xlsx")
+    /// ```
+    pub fn set_active_worksheet(&mut self, index: usize) -> PyResult<()> {
+        self.active_worksheet_index = index;
         Ok(())
     }
 
@@ -415,6 +441,6 @@ impl ExcelWorkbook {
 
 impl Default for ExcelWorkbook {
     fn default() -> Self {
-        Self::new()
+        Self::new(false)
     }
 }

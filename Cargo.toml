@@ -1,6 +1,6 @@
 [package]
 name = "pyaccelsx"
-version = "0.2.3-dev2"
+version = "0.2.3"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
@@ -9,5 +9,5 @@ name = "pyaccelsx"
 crate-type = ["cdylib"]
 
 [dependencies]
-pyo3 = "0.22.3"
+pyo3 = "0.22.5"
 rust_xlsxwriter = "0.79.0"

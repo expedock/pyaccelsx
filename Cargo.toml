@@ -9,5 +9,5 @@ name = "pyaccelsx"
 crate-type = ["cdylib"]
 
 [dependencies]
-pyo3 = "0.22.5"
+pyo3 = "0.25.0"
 rust_xlsxwriter = "0.79.0"
